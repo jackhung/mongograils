@@ -22,52 +22,57 @@ import org.slf4j.LoggerFactory
 class MongoDbWrapper implements InitializingBean {
 	GrailsApplication grailsApplication
 	Mongo mongo
-	Map<String, DBCollection> collections = [:]
-	Map<String, Class> mongoDomainClass = ["user": User.class]
+	private DB database
+	private Map<String, Class> typeToDomainClassMap = [:]	//["user": User.class]
 
-        void afterPropertiesSet() {
-		this.mongo = new Mongo("localhost", 27017)
-		this.collections."users" = mongo.getDB("demoapp").getCollection("users")
+    void afterPropertiesSet() {
+		def host = grailsApplication.config.mongo?.host ?: "localhost"
+		def port = grailsApplication.config.mongo?.port ?: 27017
+		def dbname = grailsApplication.config.mongo?.dbname ?: "demoapp"
+		this.mongo = new Mongo(host, port)
+		this.database = mongo.getDB(dbname)
 		MongoUtils.decorateClasses(this)
+	}
+	
+	public Class getDomainClassForType(String type) {
+		typeToDomainClassMap[type]
+	}
+	
+	private getDB() {
+		database
+	}
+	
+	private getDBCollection(name) {
+		return getDB().getCollection(name)
 	}
 
 	void addDomainClass(Class clazz) {
 		def mc = clazz.metaClass
 		def collectionName = clazz.getAnnotation(MongoCollection.class)?.value()
-		mc.static."getCollection" = { this.collections."$collectionName" }
+		def coll = getDBCollection(collectionName)
+		def typeName = clazz.getAnnotation (MongoTypeName.class)?.value()
+		typeToDomainClassMap[typeName] = clazz
+		
 		/*
 		 * MongonDomainMethods should simple be mixin-ed into all DomainClass, but
 		 * there seemed to be some problem in using mixin and GORM :(
 		 */
-		def domainMethods = new MongoDomainMethods(this.collections."$collectionName")
-		mc.static.getCollection = {
-			this.collections."$collectionName"
-		}
+		def domainMethods = new MongoDomainMethods(coll)
+		mc.static.getCollection = { coll }
+		mc.static.getMongoTypeName = { typeName }
+				mc.static.getMongoTypeName = { typeName }
 		mc.static.mongoFind = { opts = null ->
 			domainMethods.mongoFind(opts)
 		}
 		mc.static.mongoFindOne = { opts = null ->
 			domainMethods.mongoFindOne(opts)
 		}
-		mc.static.mongoFindAll = {
-			//mdc.invoke(mc.javaClass, "mongoFindAll", [] as Object[])
-			domainMethods.mongoFindAll()
-		}
-		mc.mongoInsert = {
-			domainMethods.mongoInsert(delegate)
-		}
-		mc.mongoRemove = {
-			domainMethods.mongoRemove(delegate)
-		}
-		mc.mongoUpdate = {
-			domainMethods.mongoUpdate(delegate)
-		}
-		mc.toMongoDoc = {
-			domainMethods.toMongoDoc(delegate)
-		}
-		mc.toMongoRef = {
-			domainMethods.toMongoRef(delegate)
-		}
+		mc.static.mongoFindAll = { domainMethods.mongoFindAll() }
+		mc.mongoInsert = { domainMethods.mongoInsert(delegate) }
+		mc.mongoRemove = { domainMethods.mongoRemove(delegate) }
+		mc.mongoUpdate = { domainMethods.mongoUpdate(delegate) }
+		mc.toMongoDoc = { domainMethods.toMongoDoc(delegate) }
+		mc.toMongoRef = { domainMethods.toMongoRef(delegate) }
 		mc.putField = { String name, val ->
 			domainMethods.putField(name, val, delegate)
 		}

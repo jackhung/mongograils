@@ -35,7 +35,6 @@ class MongoDomainMethods {
 		// TODO handle options
 		def doc = delegate.toMongoDoc()
 		collection.insert(doc)
-		println "====> $doc"
 		delegate._id = doc?._id	// TODO check error?
 	}
 	
@@ -75,10 +74,10 @@ class MongoDomainMethods {
 		}
 	}
 
-	def ignoreProps = ["log", "class", "constraints", "properties", "id", "version", "errors", "collection", "metaClass"]
+	def ignoreProps = ["log", "class", "constraints", "properties", "id", "version", "errors", "collection", "mongoTypeName", "metaClass"]
 	def toMongoDoc(delegate) {
 		def props = delegate.metaClass.properties.name - ignoreProps
-		def docMap = [_t: "user"]
+		def docMap = [_t: delegate.getMongoTypeName()]
 		props.each { p -> 
 			def val = delegate."$p"
 			if (val.respondsTo("toMongoDoc")) {

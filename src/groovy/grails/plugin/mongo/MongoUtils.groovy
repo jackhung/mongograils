@@ -24,7 +24,7 @@ class MongoUtils {
 				delegate
 			}
 			
-			def domainClass = wrapper.mongoDomainClass."$typeName"
+			def domainClass = wrapper.getDomainClassForType(typeName)
 			if (!domainClass) {
 				log.warn "Cannot find DomainClass for $typeName"
 				delegate

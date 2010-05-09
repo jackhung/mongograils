@@ -36,6 +36,14 @@ class MongoCRUDTests extends MongoTestCase {
 		assertTrue doc.toDomain().buddy instanceof User
 	}
 	
+	void testTypeNameSaveWithDoc() {
+		Account.collection.drop()
+		def acct = new Account(accountNumber: "001234", accountCode: "PR")
+		acct.mongoInsert()
+		def acctDoc = Account.mongoFindOne(accountNumber:  "001234", accountCode: "PR")
+		assertEquals Account.mongoTypeName, acctDoc._t
+	}
+	
 	void testDBRef() {
 		initUsers(drop: true)
 		
