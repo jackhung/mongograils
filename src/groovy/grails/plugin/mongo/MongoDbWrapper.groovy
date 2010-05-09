@@ -28,13 +28,17 @@ class MongoDbWrapper implements InitializingBean {
         void afterPropertiesSet() {
 		this.mongo = new Mongo("localhost", 27017)
 		this.collections."users" = mongo.getDB("demoapp").getCollection("users")
-		MongoUtils.decorateBasicDBObject(this)
+		MongoUtils.decorateClasses(this)
 	}
 
 	void addDomainClass(Class clazz) {
 		def mc = clazz.metaClass
 		def collectionName = clazz.getAnnotation(MongoCollection.class)?.value()
 		mc.static."getCollection" = { this.collections."$collectionName" }
+		/*
+		 * MongonDomainMethods should simple be mixin-ed into all DomainClass, but
+		 * there seemed to be some problem in using mixin and GORM :(
+		 */
 		def domainMethods = new MongoDomainMethods(this.collections."$collectionName")
 		mc.static.mongoFind = { opts = null ->
 			domainMethods.mongoFind(opts)
@@ -45,6 +49,9 @@ class MongoDbWrapper implements InitializingBean {
 		mc.static.mongoFindAll = {
 			//mdc.invoke(mc.javaClass, "mongoFindAll", [] as Object[])
 			domainMethods.mongoFindAll()
+		}
+		mc.toMongoDoc = {
+			domainMethods.toMongoDoc(delegate)
 		}
 		mc.putField = { String name, val ->
 			domainMethods.putField(name, val, delegate)

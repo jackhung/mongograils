@@ -1,6 +1,7 @@
 package grails.plugin.mongo
 
 import com.mongodb.BasicDBObject
+import com.mongodb.BasicDBList
 
 class MongoDomainMethods {
 	def collection
@@ -41,5 +42,20 @@ class MongoDomainMethods {
 		} else {
 			null
 		}
+	}
+
+	def ignoreProps = ["log", "class", "constraints", "properties", "id", "version", "errors", "collection", "metaClass"]
+	def toMongoDoc(delegate) {
+		def props = delegate.metaClass.properties.name - ignoreProps
+		def docMap = [_t: "user"]
+		props.each { p -> 
+			def val = delegate."$p"
+			if (val.respondsTo("toMongoDoc")) {
+				docMap."$p" = val.toMongoDoc()
+			} else {
+					docMap."$p" = val
+			}
+		}
+		docMap as BasicDBObject
 	}
 }

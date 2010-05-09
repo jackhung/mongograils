@@ -36,4 +36,15 @@ class MongoDomainTests extends MongoTestCase {
 		assert user.father instanceof User
 		assert user.mother.username == "Mary"
 	}
+
+	void testMogoDOcDomainConversion() {
+		def mogoDoc = User.mongoFindOne([username: "William"])
+		def domainObj = mogoDoc.toDomain()
+		def mogoDoc2 = domainObj.toMongoDoc()
+		def domainObj2 = mogoDoc2.toDomain()
+
+		assert domainObj2.username == "William"
+		assert domainObj2.father.username == "Pete"
+		assert domainObj2.mother.username == "Mary"
+	}
 }
