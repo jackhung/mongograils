@@ -40,6 +40,9 @@ class MongoDbWrapper implements InitializingBean {
 		 * there seemed to be some problem in using mixin and GORM :(
 		 */
 		def domainMethods = new MongoDomainMethods(this.collections."$collectionName")
+		mc.static.getCollection = {
+			this.collections."$collectionName"
+		}
 		mc.static.mongoFind = { opts = null ->
 			domainMethods.mongoFind(opts)
 		}
@@ -50,8 +53,20 @@ class MongoDbWrapper implements InitializingBean {
 			//mdc.invoke(mc.javaClass, "mongoFindAll", [] as Object[])
 			domainMethods.mongoFindAll()
 		}
+		mc.mongoInsert = {
+			domainMethods.mongoInsert(delegate)
+		}
+		mc.mongoRemove = {
+			domainMethods.mongoRemove(delegate)
+		}
+		mc.mongoUpdate = {
+			domainMethods.mongoUpdate(delegate)
+		}
 		mc.toMongoDoc = {
 			domainMethods.toMongoDoc(delegate)
+		}
+		mc.toMongoRef = {
+			domainMethods.toMongoRef(delegate)
 		}
 		mc.putField = { String name, val ->
 			domainMethods.putField(name, val, delegate)
