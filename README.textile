@@ -1,0 +1,3 @@
+<h1>MongoDB Grails Plugin</h1>
+
+Work in progress
