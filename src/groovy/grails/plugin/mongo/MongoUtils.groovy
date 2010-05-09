@@ -66,6 +66,7 @@ class MongoUtils {
 	}
 	static decorateCollection() {
 		Collection.metaClass.toMongoDoc = {
+			log.debug("${delegate}.toMongoDoc()")
 			BasicDBList newList = new BasicDBList()
 			delegate.each {
 				if (it.respondsTo("toMongoDoc")) newList << it.toMongoDoc()

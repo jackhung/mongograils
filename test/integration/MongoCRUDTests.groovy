@@ -32,7 +32,7 @@ class MongoCRUDTests extends MongoTestCase {
 		u.mongoInsert()
 		
 		def doc = User.mongoFindOne(username: "crudTestUser1")
-		println "============== $doc.toDomain()"
+		println "============== $doc.toDomain()"	// Debug
 		assertTrue doc.toDomain().buddy instanceof User
 	}
 	
@@ -42,6 +42,18 @@ class MongoCRUDTests extends MongoTestCase {
 		acct.mongoInsert()
 		def acctDoc = Account.mongoFindOne(accountNumber:  "001234", accountCode: "PR")
 		assertEquals Account.mongoTypeName, acctDoc._t
+		
+		// Account attached into User
+		def u = new User(username: "acctUser1")
+		u.accounts = []
+		u.accounts << acct
+		u.mongoInsert()		// TODO this cause an exception, the ArrayList does not response to toMongoDoc
+							// see hack in MongoDomainMethods. Need fixing!!
+		// TODO make this work u = User.mongoFindOne(_id: u._id)
+		u = User.mongoFindOne(username: "acctUser1")
+		assertEquals "001234",u.accounts[0].accountNumber
+		
+		assertEquals 1, Account.collection.count
 	}
 	
 	void testDBRef() {
