@@ -4,44 +4,48 @@ import groovy.util.GroovyTestCase;
 import grails.test.*;
 import com.mongodb.*;
 
-class MongoCRUDTests extends GroovyTestCase {
+class MongoCRUDTests extends MongoTestCase {
 	void testDomainInsertUpdateAndRemove() {
 		// Insert
 		def u = new User(username: "crudTestUser")
 		u.mongoInsert()
 		assertNotNull u._id
 		// Read
-		def udoc = User.mongoFindOne([username: "crudTestUser"])
+		def udoc = User.mongoFindOne(username: "crudTestUser")
 		assertNotNull udoc
 		assertEquals u._id, udoc._id
 		// Update
 		u.password = "password"
 		u.mongoUpdate()
-		def utmp = User.mongoFindOne([username: "crudTestUser"]).toDomain()
+		def utmp = User.mongoFindOne(username: "crudTestUser").toDomain()
 		assertNotNull utmp.password
 		assertEquals "password", utmp.password
 		// Remove
 		u.mongoRemove()		
-		udoc = User.mongoFindOne([username: "crudTestUser"])
+		udoc = User.mongoFindOne(username: "crudTestUser")
 		assertNull udoc
 	}
 	
+	void testEmbedded() {
+		def u = new User(username: "crudTestUser1")
+		u.buddy = new User(username: "crudTestUser2")
+		u.mongoInsert()
+		
+		def doc = User.mongoFindOne(username: "crudTestUser1")
+		println "============== $doc.toDomain()"
+		assertTrue doc.toDomain().buddy instanceof User
+	}
+	
 	void testDBRef() {
-		User.collection.drop()
-		def users = [:]
-		users.william = new User(username: "William")
-		users.pete = new User(username: "Pete")
-		users.june = new User(username: "June")
-		users.each {k, v -> v.mongoInsert()}
+		initUsers(drop: true)
 		
-		users.william.father = users.pete.toMongoRef()
-		users.william.mother = users.june.toMongoRef()
-		users.william.mongoUpdate()
-		
-		def williamDoc = User.mongoFindOne([username: "William"])
+		def williamDoc = User.mongoFindOne(username: "William")
 		assertTrue williamDoc.father instanceof DBRef
 		assertTrue williamDoc.mother instanceof DBRef
 		
-		def william = williamDoc.toDomain()
+		// toDomain() default not to fetch DBRef
+		assertTrue williamDoc.toDomain().father instanceof DBRef
+		// fetch DBRef
+		assertTrue williamDoc.toDomain(true).father instanceof User
 	}
 }

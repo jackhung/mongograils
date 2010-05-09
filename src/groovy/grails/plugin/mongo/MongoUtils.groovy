@@ -9,14 +9,15 @@ class MongoUtils {
 	
 	static decorateClasses(wrapper) {
 		decorateBasicDBObject wrapper
-		decorateBasicDBList wrapper
+		decorateBasicDBList()
+		decorateDBRef()
 		decorateCollection()
 	}
 	
 	// BasicDBObject.toDomain()
 	static decorateBasicDBObject(wrapper) {
 		def mc = BasicDBObject.metaClass
-		mc.toDomain = {
+		mc.toDomain = { fetchRef = false ->
 			def typeName = delegate.get("_t")
 			if (!typeName) {
 				log.warn "No typeName for mongoDoc"
@@ -32,8 +33,11 @@ class MongoUtils {
 			def domainObject = domainClass.newInstance()
 			(delegate.keySet() - ["_t"]).each { key ->
 				def value = delegate."$key"
-				if (value instanceof DBRef) {
-					domainObject."$key" = value.fetch().toDomain()
+				if (value.respondsTo("toDomain")) {
+					if (value instanceof DBRef && fetchRef)
+						domainObject."$key" = value.fetch().toDomain(fetchRef)
+					else
+						domainObject."$key" = value.toDomain(fetchRef)
 				} else 
 					domainObject."$key" = value
 			}
@@ -41,19 +45,25 @@ class MongoUtils {
 		}
 	}
 	// BasicDBList.toDomain()
-	static decorateBasicDBList(wrapper) {
+	static decorateBasicDBList() {
 		def mc = BasicDBList.metaClass
-		mc.toDomain = {
+		mc.toDomain = { fetchRef = false ->
 			List oList = new ArrayList((int) delegate.size())
 			delegate.each {
-				if (it.respondsTo("toDomain") ) oList.add(it.toDomain())
+				if (it.respondsTo("toDomain") ) oList.add(it.toDomain(fetchRef))
 				else oList.add(it)
 			}
 			return oList
 		}
 	}
 	// DBRef.toDomain()
-	
+	static decorateDBRef() {
+		DBRef.metaClass.toDomain = { fetchRef = false ->
+			if (!fetchRef)
+				return delegate
+			delegate.fetch().toDomain(fetchRef)
+		}
+	}
 	static decorateCollection() {
 		Collection.metaClass.toMongoDoc = {
 			BasicDBList newList = new BasicDBList()
