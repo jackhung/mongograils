@@ -11,40 +11,44 @@ import org.slf4j.LoggerFactory
 class MongoDomainMethods {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(MongoDomainMethods)
 	
-	DBCollection collection
+//	DBCollection collection
 	
 	MongoDomainMethods(collection) {
-		this.collection = collection
+//		this.collection = collection
 	}
 	
-	public mongoFindOne(options = null) {
+	def mongoFindOne = { options = null ->
 		if (options instanceof Map) {
-			collection.findOne(options as BasicDBObject)
+			delegate.getCollection().findOne(options as BasicDBObject)
 		} else
-			collection.findOne()
+			delegate.getCollection().findOne()
 	}
 	
-	public mongoFind(options = null) {
+	def mongoFind = {options = null ->
 		if (options instanceof Map) {
-			collection.find(options as BasicDBObject)
+			delegate.getCollection().find(options as BasicDBObject)
 		} else
-			collection.find()
+			delegate.getCollection().find()
 	}
 	
-	public mongoFindAll() {
+	def mongoFindAll = { ->
 		"mongoFindAll not yet implemented"
 	}
 	
-	public mongoInsert(delegate, options = null) {
+	def mongoTestMedhod = { arg ->
+		"$delegate mongoTestMethod $arg"
+	}
+	
+	def mongoInsert = { options = null ->
 		// TODO handle options
 		def doc = delegate.toMongoDoc()
-		collection.insert(doc)
+		delegate.getCollection().insert(doc)
 		delegate._id = doc?._id	// TODO check error?
 	}
 	
-	public mongoUpdate(delegate, options = null ) {
+	def mongoUpdate = { options = null ->
 		// TODO handle options as selector
-		collection.update(
+		delegate.getCollection().update(
 		[_id: objectId(delegate._id)] as BasicDBObject,
 		delegate.toMongoDoc(),
 		false,
@@ -52,18 +56,18 @@ class MongoDomainMethods {
 		)
 	}
 	
-	public mongoRemove(delegate, options = null) {
+	def mongoRemove = { options = null ->
 		// TODO handle options as selector
 		if (delegate._id)
-			collection.remove([_id : delegate._id] as BasicDBObject)
+			delegate.getCollection().remove([_id : delegate._id] as BasicDBObject)
 	}
 	
-	public toMongoRef(delegate) {
+	def toMongoRef = {
 		// TODO should we use collection.fullName?
-		new DBRef(collection.getDB(), collection.name, objectId(delegate._id))
+		new DBRef(delegate.getCollection().getDB(), delegate.getCollection().name, objectId(delegate._id))
 	}
 	
-	def putField(String name, args, delegate) {
+	def putField = { String name, args ->
 		if (delegate.metaClass.hasProperty(delegate, name)) {
 			delegate."$name" = args
 		} else {
@@ -71,7 +75,7 @@ class MongoDomainMethods {
 		}
 	}
 	
-	def getField(String name, delegate) {
+	def getField = { String name ->
 		if (delegate.metaClass.hasProperty(delegate, name)) {
 			delegate."$name"
 		} else {
@@ -80,7 +84,7 @@ class MongoDomainMethods {
 	}
 	
 	def ignoreProps = ["log", "class", "constraints", "properties", "id", "version", "errors", "collection", "mongoTypeName", "metaClass"]
-	def toMongoDoc(delegate) {
+	def toMongoDoc = {
 		log.debug("${delegate}.toMongoDoc()")
 		def props = delegate.metaClass.properties.name - ignoreProps
 		def docMap = [_t: delegate.getMongoTypeName()]

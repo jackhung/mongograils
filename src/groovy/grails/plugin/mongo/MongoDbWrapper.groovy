@@ -48,42 +48,34 @@ class MongoDbWrapper implements InitializingBean {
 
 	void addDomainClass(Class clazz) {
 		def mc = clazz.metaClass
-		def collectionName = clazz.getAnnotation(MongoCollection.class)?.value()
+		def collectionName = clazz.getAnnotation(MongoCollection.class)?.value()	// TODO :? default
 		def coll = getDBCollection(collectionName)
-		def typeName = clazz.getAnnotation (MongoTypeName.class)?.value()
+		def typeName = clazz.getAnnotation (MongoTypeName.class)?.value()			// TODO :? default
 		typeToDomainClassMap[typeName] = clazz
 		
 		/*
-		 * MongonDomainMethods should simple be mixin-ed into all DomainClass, but
+		 * MongonDomainMethods should simply be mixin-ed into all DomainClass, but
 		 * there seemed to be some problem in using mixin and GORM :(
 		 */
 		def domainMethods = new MongoDomainMethods(coll)
-		mc.static.getCollection = { coll }
+		mc.static.getCollection = { coll }		// TODO put coll and typeName in MongoMetaInfo so not to clobber the namespace
 		mc.static.getMongoTypeName = { typeName }
-				mc.static.getMongoTypeName = { typeName }
-		mc.static.mongoFind = { opts = null ->
-			domainMethods.mongoFind(opts)
-		}
-		mc.static.mongoFindOne = { opts = null ->
-			domainMethods.mongoFindOne(opts)
-		}
-		mc.static.mongoFindAll = { domainMethods.mongoFindAll() }
-		mc.mongoInsert = { domainMethods.mongoInsert(delegate) }
-		mc.mongoRemove = { domainMethods.mongoRemove(delegate) }
-		mc.mongoUpdate = { domainMethods.mongoUpdate(delegate) }
-		mc.toMongoDoc = { domainMethods.toMongoDoc(delegate) }
-		mc.toMongoRef = { domainMethods.toMongoRef(delegate) }
-		mc.putField = { String name, val ->
-			domainMethods.putField(name, val, delegate)
-		}
-		mc.getField = { String name ->
-			domainMethods.getField(name, delegate)
-		}
+		mc.static.mongoFind = domainMethods.mongoFind
+		mc.static.mongoFindOne = domainMethods.mongoFindOne
+		mc.static.mongoFindAll = domainMethods.mongoFindAll
+		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod
+		mc.mongoInsert = domainMethods.mongoInsert
+		mc.mongoRemove = domainMethods.mongoRemove
+		mc.mongoUpdate = domainMethods.mongoUpdate
+		mc.toMongoDoc = domainMethods.toMongoDoc
+		mc.toMongoRef = domainMethods.toMongoRef
+		mc.putField = domainMethods.putField
+		mc.getField = domainMethods.getField
 		mc.propertyMissing = { String name, val ->
-			domainMethods.putField(name, val, delegate)
+			putField(name, val)
 		}
 		mc.propertyMissing = { String name ->
-			domainMethods.getField(name, delegate)
+			getField(name)
 		}
 	}
 }
