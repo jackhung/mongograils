@@ -36,22 +36,60 @@ class MongoModifiersMethods {
 class CustomBasicDBObjectBuilder {
 	//@Delegate BasicDBObjectBuilder builder = new BasicDBObjectBuilder()
 	def ops = [:]
+	
+	def opMap(name) {
+		if (!ops[name])
+			ops[name] = [:]
+		ops[name]
+	}
+	
 	def set(f, v) {
-		ops['$set'] = ops['$set'] ?: [:]
-		ops['$set'][f] = v
+		opMap('$set')[f] = v
+		this
+	}
+	
+	def unset(f, v = 1) {
+		opMap('$unset')[f] = v
 		this
 	}
 	
 	def increment(f, v = 1) {
-		ops['$inc'] = ops['$inc'] ?: [:]
-		ops['$inc'][f] = v
+		opMap('$inc')[f] = v
 		this
 	}
 	
 	def push(f, v) {
-		ops['$push'] = ops['$push'] ?: [:]
-		ops['$push'][f] = v
+		opMap('$push')[f] = v
 		this		
+	}
+	
+	// v should be an array
+	def pushAll(f, v) {
+		opMap('$pushAll')[f] = v
+		this		
+	}
+	
+	// default pop last, v = -1 for first
+	def pop(f, v = 1) {
+		opMap('$pop')[f] = v
+		this
+	}
+	
+	def pull(f, v) {
+		opMap('$pull')[f] = v
+	}
+	
+	// v should be an array
+	def pullAll(f, v) {
+		opMap('$pullAll')[f] = v
+	}
+	
+	// v can be a single element or a collection
+	def addToSet(f, v) {
+		if (v instanceof Collection) 
+			opMap('$addToSet')[f] = ['$each', v]
+		else
+			opMap('$addToSet')[f] = v
 	}
 	
 	def get() {
