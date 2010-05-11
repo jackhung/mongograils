@@ -21,13 +21,13 @@ class MongoUtils {
 			def typeName = delegate.get("_t")
 			if (!typeName) {
 				log.warn "No typeName for mongoDoc"
-				delegate
+				return delegate
 			}
 			
 			def domainClass = wrapper.getDomainClassForType(typeName)
 			if (!domainClass) {
 				log.warn "Cannot find DomainClass for $typeName"
-				delegate
+				return delegate
 			}
 			
 			def domainObject = domainClass.newInstance()
