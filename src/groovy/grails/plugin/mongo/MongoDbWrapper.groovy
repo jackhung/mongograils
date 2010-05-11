@@ -60,8 +60,14 @@ class MongoDbWrapper implements InitializingBean {
 		def domainMethods = new MongoDomainMethods(coll)
 		mc.static.getCollection = { coll }		// TODO put coll and typeName in MongoMetaInfo so not to clobber the namespace
 		mc.static.getMongoTypeName = { typeName }
+		
 		mc.static.mongoFind = domainMethods.mongoFind
+		mc.static.mongoFind = domainMethods.mongoFindWithQueryBuilder
+		
 		mc.static.mongoFindOne = domainMethods.mongoFindOne
+		mc.static.mongoFindOne = domainMethods.mongoFindOneWithQueryBuilder
+		mc.static.mongoFindOne = MongoDomainMethods.mongoClosureFindOneWithQueryBuilder
+		
 		mc.static.mongoFindAll = domainMethods.mongoFindAll
 		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod
 		mc.mongoInsert = domainMethods.mongoInsert
@@ -77,5 +83,6 @@ class MongoDbWrapper implements InitializingBean {
 		mc.propertyMissing = { String name ->
 			getField(name)
 		}
+		mc.static.mongoQuery = MongoDomainMethods.mongoQuery
 	}
 }

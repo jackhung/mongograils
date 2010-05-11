@@ -5,6 +5,7 @@ import com.mongodb.BasicDBList
 import com.mongodb.ObjectId
 import com.mongodb.DBRef
 import com.mongodb.DBCollection
+import com.mongodb.QueryBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -31,10 +32,35 @@ class MongoDomainMethods {
 			delegate.getCollection().find()
 	}
 	
+	def mongoFindOneWithQueryBuilder = { QueryBuilder qb ->
+		delegate.getCollection().findOne(qb.get())
+	}
+	
+	def mongoFindWithQueryBuilder = { QueryBuilder qb ->
+		delegate.getCollection().find(qb.get())
+	}
+	
+	static mongoClosureFindOneWithQueryBuilder = { Closure c ->
+		def qb = QueryBuilder.start ("_t").is(delegate.getMongoTypeName())
+		c(qb)
+		delegate.getCollection().findOne(qb.get())
+	}
+	
+	def mongoClosureFindWithQueryBuilder = { Closure c ->
+		delegate.getCollection().find(qb.get())
+	}
+	
 	def mongoFindAll = { ->
 		"mongoFindAll not yet implemented"
 	}
 	
+	static mongoQuery = { key, byType = true ->
+		if (byType)
+			return QueryBuilder.start("_t").is(delegate.getMongoTypeName()).and(key)
+		else
+			return QueryBuilder.start(key)
+	}
+
 	def mongoTestMedhod = { arg ->
 		"$delegate mongoTestMethod $arg"
 	}
