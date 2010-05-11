@@ -87,7 +87,7 @@ class CustomBasicDBObjectBuilder {
 	// v can be a single element or a collection
 	def addToSet(f, v) {
 		if (v instanceof Collection) 
-			opMap('$addToSet')[f] = ['$each', v]
+			opMap('$addToSet')[f] = ['$each': v]
 		else
 			opMap('$addToSet')[f] = v
 	}

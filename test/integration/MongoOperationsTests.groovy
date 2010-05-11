@@ -81,8 +81,8 @@ class MongoOperationsTests extends MongoTestCase {
 		
 		def acct = Account.mongoFindOne(accountNumber: "PULL001").toDomain()
 		assertTrue acct.tags.contains("Groovy")
-		assertTrue acct.tags.contains("Groovy")
-		assertTrue acct.tags.contains("Groovy")
+		assertTrue acct.tags.contains("Grails")
+		assertTrue acct.tags.contains("NOSql")
 		
 		acct.mongoPerform {
 			pull "tags", "Groovy"
@@ -96,5 +96,20 @@ class MongoOperationsTests extends MongoTestCase {
 		acct = Account.mongoFindOne(accountNumber: "PULL001").toDomain()
 		assertEquals 1, acct.tags.size()
 				
+	}
+	
+	void testAddToSet() {
+		createTestAccount "A2SET001"
+		
+		def acct = Account.mongoFindOne(accountNumber: "A2SET001").toDomain()
+		assertEquals 4, acct.tags.size()
+		
+		acct.mongoPerform {
+			addToSet "tags", ["Framework", "Grails"]
+		}
+		acct = Account.mongoFindOne(accountNumber: "A2SET001").toDomain()
+		assertEquals 5, acct.tags.size()
+		println acct.toMongoDoc()
+		assertTrue acct.tags.contains("Framework")
 	}
 }
