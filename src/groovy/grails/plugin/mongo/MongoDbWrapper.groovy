@@ -86,5 +86,10 @@ class MongoDbWrapper implements InitializingBean {
 		mc.propertyMissing = { String name ->
 			getField(name)
 		}
+		
+		/*
+		 * mongo operations
+		 */
+		mc.mongoPerform = MongoModifiersMethods.mongoPerform
 	}
 }
