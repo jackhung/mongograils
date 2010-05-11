@@ -22,7 +22,7 @@ class MongoOperationsTests extends MongoTestCase {
 	 * User.operate(filter, operation, ..
 	 * user.operate(
 	 */
-	void testBasicOperation() {
+	void testSetIncrementAndPushOperation() {
 		def acct = new Account(accountNumber : "OTEST001", accountCode: "OTST")
 		acct.mongoInsert()
 		def acct2 = new Account(accountNumber : "OTEST002", accountCode: "OTST")
