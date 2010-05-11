@@ -61,6 +61,7 @@ class MongoDomainMethods {
 			return QueryBuilder.start(key)
 	}
 
+	// TODO remove me
 	def mongoTestMedhod = { arg ->
 		"$delegate mongoTestMethod $arg"
 	}

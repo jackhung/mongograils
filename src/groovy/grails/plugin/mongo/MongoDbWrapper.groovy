@@ -69,7 +69,10 @@ class MongoDbWrapper implements InitializingBean {
 		mc.static.mongoFindOne = MongoDomainMethods.mongoClosureFindOneWithQueryBuilder
 		
 		mc.static.mongoFindAll = domainMethods.mongoFindAll
-		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod
+		mc.static.mongoQuery = MongoDomainMethods.mongoQuery
+		
+		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod	// TODO remove me
+		
 		mc.mongoInsert = domainMethods.mongoInsert
 		mc.mongoRemove = domainMethods.mongoRemove
 		mc.mongoUpdate = domainMethods.mongoUpdate
@@ -83,6 +86,5 @@ class MongoDbWrapper implements InitializingBean {
 		mc.propertyMissing = { String name ->
 			getField(name)
 		}
-		mc.static.mongoQuery = MongoDomainMethods.mongoQuery
 	}
 }
