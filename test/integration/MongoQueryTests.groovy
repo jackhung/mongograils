@@ -1,3 +1,5 @@
+import javax.swing.text.StyledEditorKit.ItalicAction;
+
 
 import grails.test.*;
 import com.mongodb.*;
@@ -72,5 +74,25 @@ class MongoQueryTests extends MongoTestCase {
 		
 		res = User.mongoFind { where("info.weight").between(100, 161) }
 		assertEquals 3, res.count()
+	}
+	
+	void testSkipAndLimit() {
+		(100..200).each { new User(username: "USER$it").mongoInsert() }
+		
+		def userCount = User.mongoFind().count()
+		def cursor = User.mongoFind().skip(50)
+		assertEquals userCount - 50, cursor.itcount()
+		
+		cursor = User.mongoFind().limit(10)
+		assertEquals 10, cursor.itcount()
+
+		cursor = User.mongoFind{ where("username").regex(~/USER12?/) }.limit(5)
+		assertEquals 5, cursor.itcount()
+		
+		cursor = User.mongoFind{where("username").regex(~/USER13.*/)}.skip(5).sort(["username": 1] as com.mongodb.BasicDBObject)
+//		assertEquals 5, cursor.itcount()
+		assertEquals 10, cursor.count()
+		def u = cursor.next().toDomain()
+		assertEquals "USER135", u.username
 	}
 }
