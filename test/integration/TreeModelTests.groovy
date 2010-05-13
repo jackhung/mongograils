@@ -6,24 +6,15 @@ import com.mongodb.*;
  * @author jack
  *
  */
-class TreeModelTests extends MongoTestCase {
+class TreeModelTests extends GrailsUnitTestCase {
 	def nodes = [:]
 		
 	protected void setUp() {
 		super.setUp()
 		TreeNode.collection.drop()
-		initTestTree()
-	}
-	
-	void initTestTree() {
 		("A".."G").each { c ->
 			nodes[c] = new TreeNode(nodeName: c).mongoInsert()
 		}
-		
-// Had a lot of problem doing it the following way!!
-//		TreeNode.mongoFindOne([nodeName: "A"]).toDomain().addDecendent(nodes["B"]).addDecendent(nodes["E"])
-//		TreeNode.mongoFindOne([nodeName: "B"]).toDomain().addDecendent(nodes["C"]).addDecendent(nodes["D"])
-//		TreeNode.mongoFindOne([nodeName: "E"]).toDomain().addDecendent(nodes["F"]).addDecendent(nodes["G"])
 		
 		addDecendent(TreeNode.mongoFindOne([nodeName: "A"]).toDomain(), nodes["B"])
 		addDecendent(TreeNode.mongoFindOne([nodeName: "A"]).toDomain(), nodes["E"])
@@ -46,6 +37,10 @@ class TreeModelTests extends MongoTestCase {
 	void testFindDecendentsOfB() {
 		def decendents = TreeNode.mongoFind(ancestors: nodes["B"]._id)
 		assertEquals 3, decendents.count()
+		def decendentNames = decendents.collect { it.nodeName }
+		assertTrue decendentNames.contains("C")
+		assertTrue decendentNames.contains("D")
+		assertTrue decendentNames.contains("G")
 	}
 	
 	void testFindAncestorOfF() {
