@@ -19,6 +19,10 @@ import com.mongodb.DBRef
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+/**
+ * @author jack
+ *
+ */
 class MongoDbWrapper implements InitializingBean {
 	GrailsApplication grailsApplication
 	Mongo mongo
@@ -63,6 +67,7 @@ class MongoDbWrapper implements InitializingBean {
 		
 		mc.static.mongoFind = domainMethods.mongoFind
 		mc.static.mongoFind = domainMethods.mongoFindWithQueryBuilder
+		mc.static.mongoFind = MongoDomainMethods.mongoClosureFindWithQueryBuilder
 		
 		mc.static.mongoFindOne = domainMethods.mongoFindOne
 		mc.static.mongoFindOne = domainMethods.mongoFindOneWithQueryBuilder
@@ -71,11 +76,11 @@ class MongoDbWrapper implements InitializingBean {
 		mc.static.mongoFindAll = domainMethods.mongoFindAll
 		mc.static.mongoQuery = MongoDomainMethods.mongoQuery
 		
-		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod	// TODO remove me
+//		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod	// TODO need to re-think update
 		
 		mc.mongoInsert = domainMethods.mongoInsert
 		mc.mongoRemove = domainMethods.mongoRemove
-		mc.mongoUpdate = domainMethods.mongoUpdate
+		mc.mongoUpdate = domainMethods.mongoUpdate	// Do not use
 		mc.toMongoDoc = domainMethods.toMongoDoc
 		mc.toMongoRef = domainMethods.toMongoRef
 		mc.putField = domainMethods.putField

@@ -28,7 +28,7 @@ class MongoModifiersMethods {
 		c.delegate = builder
 		c.call()
 		def selector = ["_id": objectId(delegate._id), "_t": delegate.getMongoTypeName()] as BasicDBObject
-		println builder.get()
+		log.debug "${builder.get()}"
 		delegate.getCollection().update(selector, builder.get())
 	}
 }

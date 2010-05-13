@@ -9,6 +9,10 @@ import com.mongodb.QueryBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+/**
+ * @author jack
+ *
+ */
 class MongoDomainMethods {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(MongoDomainMethods)
 	
@@ -32,6 +36,7 @@ class MongoDomainMethods {
 			delegate.getCollection().find()
 	}
 	
+	// with QueryBuilder
 	def mongoFindOneWithQueryBuilder = { QueryBuilder qb ->
 		delegate.getCollection().findOne(qb.get())
 	}
@@ -40,14 +45,22 @@ class MongoDomainMethods {
 		delegate.getCollection().find(qb.get())
 	}
 	
+	// with QueryBuilderClosure  User.mongoFind { that("mother.username").is("Mary") }
 	static mongoClosureFindOneWithQueryBuilder = { Closure c ->
-		def qb = QueryBuilder.start ("_t").is(delegate.getMongoTypeName())
-		c(qb)
+		def qb = evaluateQueryBuilderClosure(c, delegate)
 		delegate.getCollection().findOne(qb.get())
 	}
 	
-	def mongoClosureFindWithQueryBuilder = { Closure c ->
+	static mongoClosureFindWithQueryBuilder = { Closure c ->
+		def qb = evaluateQueryBuilderClosure(c, delegate)
 		delegate.getCollection().find(qb.get())
+	}
+
+	static evaluateQueryBuilderClosure(c, delegate) {
+		def qb = new MyQueryBuilder()
+		qb.start ("_t").is(delegate.getMongoTypeName())
+		c.delegate = qb
+		c(qb)
 	}
 	
 	def mongoFindAll = { ->
@@ -72,14 +85,18 @@ class MongoDomainMethods {
 		delegate.getCollection().insert(doc)
 		delegate._id = doc?._id	// TODO check error?
 	}
-	
-	def mongoUpdate = { options = null ->
+
+	/**
+	 * Warn: do not use, not working as expected!!
+	 */
+	def mongoUpdate = { Map options = [:], Closure c = null ->
 		// TODO handle options as selector
+		log.error "=====> ${delegate.toMongoDoc()}"
 		delegate.getCollection().update(
-		[_id: objectId(delegate._id)] as BasicDBObject,
-		delegate.toMongoDoc(),
-		false,
-		false
+			[_id: objectId(delegate._id), "_t" : delegate.getMongoTypeName()] as BasicDBObject,
+			delegate.toMongoDoc(),
+			options.upsert?: false,
+			options.multi?: false
 		)
 	}
 	
@@ -135,4 +152,23 @@ class MongoDomainMethods {
 	private objectId(id) {
 		id instanceof ObjectId ? id : new ObjectId(id)
 	}
+}
+
+class MyQueryBuilder extends QueryBuilder {
+	def where(e) {
+		and(e)
+	}
+	
+	def exists() {
+		exists true
+	}
+	
+	def notExists() {
+		exists false
+	}
+	
+	def between(a, b) {
+		greaterThan(a).lessThan(b)
+	}
+	
 }

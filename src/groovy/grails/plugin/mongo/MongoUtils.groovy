@@ -4,6 +4,10 @@ import com.mongodb.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+/**
+ * @author jack
+ *
+ */
 class MongoUtils {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(MongoUtils)
 	

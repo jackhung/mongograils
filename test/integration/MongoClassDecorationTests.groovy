@@ -4,6 +4,10 @@ import groovy.util.GroovyTestCase;
 import grails.test.*;
 import com.mongodb.*;
 
+/**
+ * @author jack
+ *
+ */
 class MongoClassDecorationTests extends GroovyTestCase {
 	/**
 	 * Nested list of domain objects and what ever to MongoDoc and back again.

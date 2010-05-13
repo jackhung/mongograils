@@ -4,6 +4,10 @@ import groovy.util.GroovyTestCase;
 import grails.test.*;
 import com.mongodb.*;
 
+/**
+ * @author jack
+ *
+ */
 class MongoCRUDTests extends MongoTestCase {
 	void testDomainInsertUpdateAndRemove() {
 		// Insert
@@ -15,8 +19,9 @@ class MongoCRUDTests extends MongoTestCase {
 		assertNotNull udoc
 		assertEquals u._id, udoc._id
 		// Update
-		u.password = "password"
-		u.mongoUpdate()
+		u.mongoPerform {
+			set "password", "password"
+		}
 		def utmp = User.mongoFindOne(username: "crudTestUser").toDomain()
 		assertNotNull utmp.password
 		assertEquals "password", utmp.password
@@ -26,13 +31,33 @@ class MongoCRUDTests extends MongoTestCase {
 		assertNull udoc
 	}
 	
+	/**
+	 * Not working as expected, use perform
+	 * @depreciated
+	 */
+	void testMongoUpdateWithOptions() {
+		def u = new User(username: "updateTestUser1")
+		u.salary = 10000.0
+		u.mongoInsert()
+		
+		def doc = User.mongoFindOne(username: "updateTestUser1").toDomain()
+		doc.mongoPerform {
+			set "salary", 10500.0
+		}
+		assertEquals 10500.0, User.mongoFindOne(username: "updateTestUser1").toDomain().salary
+		
+		doc.mongoPerform {
+			increment "salary", 50.0
+		}
+		assertEquals 10550.0, User.mongoFindOne(username: "updateTestUser1").toDomain().salary
+	}
+	
 	void testEmbedded() {
 		def u = new User(username: "crudTestUser1")
 		u.buddy = new User(username: "crudTestUser2")
 		u.mongoInsert()
 		
 		def doc = User.mongoFindOne(username: "crudTestUser1")
-		println "============== $doc.toDomain()"	// Debug
 		assertTrue doc.toDomain().buddy instanceof User
 	}
 	

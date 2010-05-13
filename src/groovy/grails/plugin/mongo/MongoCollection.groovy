@@ -7,6 +7,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+/**
+ * @author jack
+ *
+ */
 @Retention(RUNTIME)
 @Target(TYPE)
 @interface MongoCollection {

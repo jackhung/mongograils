@@ -2,6 +2,10 @@
 import grails.test.*;
 import com.mongodb.*;
 
+/**
+ * @author jack
+ *
+ */
 class MongoQueryTests extends MongoTestCase {
 	
 	protected void setUp() {
@@ -36,7 +40,37 @@ class MongoQueryTests extends MongoTestCase {
 	 * result = User.mongoFindOne { qb -> qb.and("someField").is(someValue) }
 	 */
 	void testFindOneWithQueryBuilderClosure() {
-		def user = User.mongoFindOne { qb -> qb.and("mother").exists(true) }
+		def user = User.mongoFindOne { qb -> qb.where("mother").exists(true) }
 		assertNotNull user.mother
+		
+		user = User.mongoFindOne { where("mother").exists(true) }
+		assertNotNull user.mother
+	}
+	
+	void testFindWithQueryBuilderClosure() {
+		def res = User.mongoFind { qb -> qb.where("mother").exists(true) }
+		assertEquals 1, res.count()
+		
+		res = User.mongoFind { where("mother").exists(true).and("father").exists(true) }
+		assertEquals 1, res.count()
+		def user = res.next().toDomain(fetchRef: true)
+		assertEquals "June", user.mother.username
+	}
+	
+	void testFindWithQueryBuilderUsingCustomGrammer() {
+		def res = User.mongoFind { where("mother").exists() }
+		assertEquals 1, res.count()
+		
+		res = User.mongoFind { where("mother").notExists() }
+		assertEquals 2, res.count()
+		
+		res = User.mongoFind { where("info.weight").between(100, 150) }
+		assertEquals 2, res.count()
+		
+		res = User.mongoFind { where("info.weight").between(100, 160) }
+		assertEquals 2, res.count()
+		
+		res = User.mongoFind { where("info.weight").between(100, 161) }
+		assertEquals 3, res.count()
 	}
 }
