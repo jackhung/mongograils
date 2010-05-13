@@ -84,6 +84,7 @@ class MongoDomainMethods {
 		def doc = delegate.toMongoDoc()
 		delegate.getCollection().insert(doc)
 		delegate._id = doc?._id	// TODO check error?
+		delegate
 	}
 
 	/**
@@ -91,7 +92,7 @@ class MongoDomainMethods {
 	 */
 	def mongoUpdate = { Map options = [:], Closure c = null ->
 		// TODO handle options as selector
-		log.error "=====> ${delegate.toMongoDoc()}"
+		log.warn "Lot of problem with mongoUpdate!! Do not use: ${delegate.toMongoDoc()}"
 		delegate.getCollection().update(
 			[_id: objectId(delegate._id), "_t" : delegate.getMongoTypeName()] as BasicDBObject,
 			delegate.toMongoDoc(),
@@ -138,12 +139,14 @@ class MongoDomainMethods {
 			if (val.respondsTo("toMongoDoc")) {
 				docMap."$p" = val.toMongoDoc()
 			} else {
-				if (val instanceof ArrayList) {
+				if (val instanceof Collection) {
 					// TODO Bug does not respond to toMongoDoc but can invoke toMongoDoc !!
 					log.error("FIXME: hack around $val of ${val.getClass().simpleName} not reponds to toMongoDoc()")
 					docMap."$p" = val.toMongoDoc()
-				} else
+				} else {
+					log.debug("default to val itself for ${val.getClass()}")
 					docMap."$p" = val
+				}
 			}
 		}
 		docMap as BasicDBObject

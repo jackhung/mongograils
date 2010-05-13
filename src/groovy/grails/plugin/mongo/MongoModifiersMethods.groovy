@@ -34,6 +34,7 @@ class MongoModifiersMethods {
 }
 
 class CustomBasicDBObjectBuilder {
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(CustomBasicDBObjectBuilder)
 	//@Delegate BasicDBObjectBuilder builder = new BasicDBObjectBuilder()
 	def ops = [:]
 	
