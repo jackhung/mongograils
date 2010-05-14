@@ -32,4 +32,13 @@ class EmptyModelTests extends GrailsUnitTestCase {
 		assertEquals 121, Misc.mongoFindOne{ where("code").is("CODE:120") }.toDomain().value
 	}
 	
+	void testSkipTransientField() {
+		def misc = new Misc()
+		misc.code = "DoNotSaveTest"
+		misc.mongoInsert()
+		
+		def misc2 = Misc.mongoFindOne{ where("code").is("DoNotSaveTest") }.toDomain()
+		assertNull misc2.doNotSave
+	}
+	
 }

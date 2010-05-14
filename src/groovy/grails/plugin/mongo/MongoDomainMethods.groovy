@@ -6,6 +6,7 @@ import com.mongodb.ObjectId
 import com.mongodb.DBRef
 import com.mongodb.DBCollection
 import com.mongodb.QueryBuilder
+import java.lang.reflect.Modifier
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -44,6 +45,8 @@ class MongoDomainMethods {
 		mc.propertyMissing = { String name ->
 			getField(name)
 		}
+		
+		cacheDisallowedField(mc)
 	}
 
 	static mongoFindOne = { options = null ->
@@ -109,6 +112,7 @@ class MongoDomainMethods {
 		def doc = delegate.toMongoDoc()
 		delegate.getCollection().insert(doc)
 		delegate._id = doc?._id	// TODO check error?
+		if (delegate.respondsTo("afterInsert")) delegate.afterInsert()
 		delegate
 	}
 
@@ -125,14 +129,17 @@ class MongoDomainMethods {
 			options.upsert?: false,
 			options.multi?: false
 		)
+		if (delegate.respondsTo("afterUpdate")) delegate.afterUpdate()
 	}
 	
 	static mongoRemove = { options = null ->
 		// TODO handle options as selector
-		if (delegate.respondsTo("beforeRemove")) delegate.beforeUpdate()
+		if (delegate.respondsTo("beforeRemove")) delegate.beforeDelete()
 		if (delegate.respondsTo("beforeDelete")) delegate.beforeDelete()
 		if (delegate._id)
 			delegate.getCollection().remove([_id : delegate._id] as BasicDBObject)
+		if (delegate.respondsTo("afterRemove")) delegate.afterDelete()
+		if (delegate.respondsTo("afterDelete")) delegate.afterDelete()
 	}
 	
 	static toMongoRef = {
@@ -159,26 +166,46 @@ class MongoDomainMethods {
 	static ignoreProps = ["log", "class", "constraints", "properties", "id", "version", "errors", "collection", "mongoTypeName", "metaClass"]
 	static toMongoDoc = {
 		log.debug("${delegate}.toMongoDoc()")
-		def props = delegate.metaClass.properties.name - ignoreProps
+		def mc = delegate.metaClass
+		def props = mc.properties.name - ignoreProps
 		def docMap = [_t: delegate.getMongoTypeName()]
 		props.each { p -> 
 			def val = delegate."$p"
-			if (val instanceof Closure)
-			log.debug("\t$p -> ${val.getClass()} $val")
-			if (val.respondsTo("toMongoDoc")) {
-				docMap."$p" = val.toMongoDoc()
-			} else {
-				if (val instanceof Collection) {
-					// TODO Bug does not respond to toMongoDoc but can invoke toMongoDoc !!
-					log.error("FIXME: hack around $val of ${val.getClass().simpleName} not reponds to toMongoDoc()")
+			if ( !fieldDisallowed(mc, p) ) {	
+				log.debug("\t$p -> ${val.getClass()} $val")
+				if (val.respondsTo("toMongoDoc")) {
 					docMap."$p" = val.toMongoDoc()
 				} else {
-					log.debug("default to val itself for ${val.getClass()}")
-					docMap."$p" = val
+					if (val instanceof Collection) {
+						// TODO Bug does not respond to toMongoDoc but can invoke toMongoDoc !!
+						log.error("FIXME: hack around $val of ${val.getClass().simpleName} not reponds to toMongoDoc()")
+						docMap."$p" = val.toMongoDoc()
+					} else {
+						log.debug("default to val itself for ${val.getClass()}")
+						docMap."$p" = val
+					}
 				}
 			}
 		}
 		docMap as BasicDBObject
+	}
+
+	// TODO we need to listen to changeEvent and clean the cache
+	static disallowedCache = [:]
+	static cacheDisallowedField(mc) {
+		def props = mc.properties.name - ignoreProps
+		props.each { p -> 
+			def prop = mc.getProperties().find { it.name == p }
+			def m = prop.getField().getModifiers()
+			if (Modifier.isTransient(m) || Modifier.isStatic(m)) {
+				log.debug("Field: $p of Class: ${mc.getJavaClass()} is not persistent")
+				disallowedCache.put(mc.getJavaClass().name + p, true)
+			}
+		}
+	}
+	                          
+	static boolean fieldDisallowed(mc, propName) {
+		disallowedCache[mc.getJavaClass().name + propName] != null
 	}
 	
 	static private objectId(id) {
