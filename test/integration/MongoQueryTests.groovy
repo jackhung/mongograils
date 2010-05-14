@@ -86,11 +86,10 @@ class MongoQueryTests extends MongoTestCase {
 		cursor = User.mongoFind().limit(10)
 		assertEquals 10, cursor.itcount()
 
-		cursor = User.mongoFind{ where("username").regex(~/USER12?/) }.limit(5)
+		cursor = User.mongoFind{ where("username").regex(~/USER12\n?/) }.limit(5)
 		assertEquals 5, cursor.itcount()
 		
-		cursor = User.mongoFind{where("username").regex(~/USER13.*/)}.skip(5).sort(["username": 1] as com.mongodb.BasicDBObject)
-//		assertEquals 5, cursor.itcount()
+		cursor = User.mongoFind{where("username").regex(~/USER13\n?/)}.skip(5).sort(["username": 1] as com.mongodb.BasicDBObject)
 		assertEquals 10, cursor.count()
 		def u = cursor.next().toDomain()
 		assertEquals "USER135", u.username
