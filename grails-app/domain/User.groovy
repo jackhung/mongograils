@@ -5,7 +5,15 @@ import grails.plugin.mongo.MongoTypeName
 @MongoTypeName("user")
 class User {
 	String username
-
+	
+	def beforeInsert() {
+		dateCreated = new Date()
+	}
+	
+	def beforeUpdate() {
+		lastUpdated = new Date()
+	}
+	
 	String toString() {
 		"User: $username"
 	}

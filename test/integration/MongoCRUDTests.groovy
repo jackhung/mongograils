@@ -81,6 +81,12 @@ class MongoCRUDTests extends MongoTestCase {
 		assertEquals 1, Account.collection.count
 	}
 	
+	void testBeforeXXX() {
+		def u = new User(username: "testBeforeXXX")
+		u.mongoInsert()
+		assertNotNull u.dateCreated
+	}
+	
 	void testDBRef() {
 		initUsers(drop: true)
 		

@@ -29,6 +29,7 @@ class MongoModifiersMethods {
 		c.call()
 		def selector = ["_id": objectId(delegate._id), "_t": delegate.getMongoTypeName()] as BasicDBObject
 		log.debug "${builder.get()}"
+		if (delegate.respondsTo("beforePerform")) delegate.beforePerform(builder)
 		delegate.getCollection().update(selector, builder.get())
 	}
 }

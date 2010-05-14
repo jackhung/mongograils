@@ -105,6 +105,7 @@ class MongoDomainMethods {
 	
 	static mongoInsert = { options = null ->
 		// TODO handle options
+		if (delegate.respondsTo("beforeInsert")) delegate.beforeInsert()
 		def doc = delegate.toMongoDoc()
 		delegate.getCollection().insert(doc)
 		delegate._id = doc?._id	// TODO check error?
@@ -117,6 +118,7 @@ class MongoDomainMethods {
 	static mongoUpdate = { Map options = [:], Closure c = null ->
 		// TODO handle options as selector
 		log.warn "Lot of problem with mongoUpdate!! Do not use: ${delegate.toMongoDoc()}"
+		if (delegate.respondsTo("beforeUpdate")) delegate.beforeUpdate()
 		delegate.getCollection().update(
 			[_id: objectId(delegate._id), "_t" : delegate.getMongoTypeName()] as BasicDBObject,
 			delegate.toMongoDoc(),
@@ -127,6 +129,8 @@ class MongoDomainMethods {
 	
 	static mongoRemove = { options = null ->
 		// TODO handle options as selector
+		if (delegate.respondsTo("beforeRemove")) delegate.beforeUpdate()
+		if (delegate.respondsTo("beforeDelete")) delegate.beforeDelete()
 		if (delegate._id)
 			delegate.getCollection().remove([_id : delegate._id] as BasicDBObject)
 	}
@@ -159,6 +163,7 @@ class MongoDomainMethods {
 		def docMap = [_t: delegate.getMongoTypeName()]
 		props.each { p -> 
 			def val = delegate."$p"
+			if (val instanceof Closure)
 			log.debug("\t$p -> ${val.getClass()} $val")
 			if (val.respondsTo("toMongoDoc")) {
 				docMap."$p" = val.toMongoDoc()
