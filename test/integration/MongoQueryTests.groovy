@@ -94,4 +94,22 @@ class MongoQueryTests extends MongoTestCase {
 		def u = cursor.next().toDomain()
 		assertEquals "USER135", u.username
 	}
+	
+	void testFindWithFieldsSelection() {
+		def user = User.mongoFindOne([username: "Pete"], [info: true]).toDomain()
+		assertNotNull user.info
+		assertNull user.username
+		
+		user = User.mongoFindOne([username: "Pete"], [info: false]).toDomain()
+		assertNull user.info
+		assertNotNull user.username
+		
+		user = User.mongoFindOne(info: 1) { where("username").is("Pete") }.toDomain()
+		assertNotNull user.info
+		assertNull user.username
+		
+		user = User.mongoFindOne(info: 0) { where("username").is("Pete") }.toDomain()
+		assertNull user.info
+		assertNotNull user.username
+	}
 }

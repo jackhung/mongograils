@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory
  */
 class MongoDomainMethods {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(MongoDomainMethods)
+	private static final BasicDBObject emptyDBObject = new BasicDBObject()
 
 	static enhanceClass = { Class domainClass ->
 		def mc = domainClass.metaClass
@@ -49,18 +50,16 @@ class MongoDomainMethods {
 		cacheDisallowedField(mc)
 	}
 
-	static mongoFindOne = { options = null ->
-		if (options instanceof Map) {
-			delegate.getCollection().findOne(options as BasicDBObject)
-		} else
-			delegate.getCollection().findOne()
+	static mongoFindOne = { conds = emptyDBObject, fields = emptyDBObject ->
+		if (conds instanceof Map) conds = conds as BasicDBObject
+		if (fields instanceof Map) fields = fields as BasicDBObject
+		delegate.getCollection().findOne(conds, fields)
 	}
 	
-	static mongoFind = {options = null ->
-		if (options instanceof Map) {
-			delegate.getCollection().find(options as BasicDBObject)
-		} else
-			delegate.getCollection().find()
+	static mongoFind = {conds = emptyDBObject, fields = emptyDBObject ->
+		if (conds instanceof Map) conds = conds as BasicDBObject
+		if (fields instanceof Map) fields = fields as BasicDBObject
+		delegate.getCollection().find(conds, fields)
 	}
 	
 	// with QueryBuilder
@@ -73,14 +72,16 @@ class MongoDomainMethods {
 	}
 	
 	// with QueryBuilderClosure  User.mongoFind { that("mother.username").is("Mary") }
-	static mongoClosureFindOneWithQueryBuilder = { Closure c ->
+	static mongoClosureFindOneWithQueryBuilder = { fields = emptyDBObject, Closure c ->
 		def qb = evaluateQueryBuilderClosure(c, delegate)
-		delegate.getCollection().findOne(qb.get())
+		if (fields instanceof Map) fields = fields as BasicDBObject
+		delegate.getCollection().findOne(qb.get(), fields)
 	}
 	
-	static mongoClosureFindWithQueryBuilder = { Closure c ->
+	static mongoClosureFindWithQueryBuilder = { fields = emptyDBObject, Closure c ->
 		def qb = evaluateQueryBuilderClosure(c, delegate)
-		delegate.getCollection().find(qb.get())
+		if (fields instanceof Map) fields = fields as BasicDBObject
+		delegate.getCollection().find(qb.get(), fields)
 	}
 
 	static evaluateQueryBuilderClosure(c, delegate) {
