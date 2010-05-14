@@ -5,6 +5,7 @@
 ** Add any fields any time
 * Power of <code>com.mongodb.QueryBuilder</code>
 * Easy Atomic operations 
+* Can link documents with <code>DBRef</code>
 
 <h2>Domain Class</h2>
 
@@ -36,6 +37,7 @@ Static methods:
 ** <code>User.mongoFind().skip(10).limit(10).sort([username: 1])</code>
 * mongoFindOne
 ** Similar to <code>mongoFInd()</code> supporting QueryBuilder
+** mongoQuery
 
 Instance methods:
 * mongoInsert
