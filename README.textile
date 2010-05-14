@@ -31,9 +31,11 @@ The value of <code>@MongoCollection</code> specifies the MongoDB Collection to u
 Static methods:
 * mongoFind
 ** <code>User.mongoFind()</code>
-** <code>User.mongoFInd(username: "Jack", "address.state": "CA")</code> with arbitrary conditions
+** <code>User.mongoFind(username: "Jack", "address.state": "CA")</code> with arbitrary conditions
+** <code>User.mongoFind([username: "Jack", "address.state": "CA"], [profile: 1])</code> return only profile field
 ** <code>User.mongoFind { where("username").is("Jack") } // use MyQueryBuilder</code>
 ** <code>User.mongoFind { where("username").regex("Jack.*") }</code>
+** <code>User.mongoFind(profile: 1) { where("username").regex("Jack.*") }</code> return only profile field
 ** <code>User.mongoFind().skip(10).limit(10).sort([username: 1])</code>
 * mongoFindOne
 ** Similar to <code>mongoFInd()</code> supporting QueryBuilder
@@ -59,10 +61,10 @@ CRUD Events:
 * beforeInsert
 * beforeUpdate
 * beforeDelete
-* afterInsert (Not yet implemented)
-* afterUpdate (Not yet implemented)
-* afterDelete (Not yet implemented)
-* onLoad (Not yet implemented)
+* afterInsert (Not yet tested)
+* afterUpdate (Not yet tested)
+* afterDelete (Not yet tested)
+* onLoad (Not yet implemented. There is no simple way to implement this. Need to wrapped the <code>DBCursor</code> return to the caller to intercept call to <code>next()</code>)
 
 <h3>MongoDB related classes and  methods</h3>
 * <code>BasicDBObject.toDomain()</code>
