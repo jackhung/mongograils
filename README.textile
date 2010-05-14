@@ -1,3 +1,71 @@
 <h1>MongoDB Grails Plugin</h1>
 
-Work in progress
+<h2>Features</h2>
+* Simple Domain class with dynamic properties (no document schema necessary),
+** Add any fields any time
+* Power of <code>com.mongodb.QueryBuilder</code>
+* Easy Atomic operations 
+
+<h2>Domain Class</h2>
+
+<h3>Annotations</h3>
+You need to annotated your Domain Class with two annotations:
+<pre>
+import grails.plugin.mongo.MongoCollection
+import grails.plugin.mongo.MongoTypeName
+
+@MongoCollection("users")
+@MongoTypeName("user")
+class User {
+}
+</pre>
+
+When persists to MongoDB, a field name <code>_t</code> is added and set to the value defined by <code>@MongoTypeName</code>. 
+This is used by the <code>BasicDBObject.toDomain()</code> to determine the Domain Class.
+
+The value of <code>@MongoCollection</code> specifies the MongoDB Collection to use for storing instances of the entity.
+
+<h3>Domain MongoDB methods</h3>
+
+Static methods:
+* mongoFind
+** <code>User.mongoFind()</code>
+** <code>User.mongoFInd(username: "Jack", "address.state": "CA")</code> with arbitrary conditions
+** <code>User.mongoFind { where("username").is("Jack") } // use MyQueryBuilder</code>
+** <code>User.mongoFind { where("username").regex("Jack.*") }</code>
+** <code>User.mongoFind().skip(10).limit(10).sort([username: 1])</code>
+* mongoFindOne
+** Similar to <code>mongoFInd()</code> supporting QueryBuilder
+
+Instance methods:
+* mongoInsert
+* mongoRemove
+* <code>mongoPerform()</code>: to support atomic modification to a document
+<pre>
+        // increments balance with amount, increments txCount by 1,
+        // and push an log entry to txLog list ATOMICALLY
+        acct.mongoPerform {
+               increment "balance", amount	
+               increment "txCount"
+               push "txLog", [date: new Date(), amount: amount]
+        }
+</pre>
+* <code>toMongoDoc()</code> : converts to a <code>BasicDBObject</code>
+** <code>u = User.mongoFindOne { where("username").is("Jack") }.toDomain()</code>
+
+CRUD Events:
+* beforeInsert
+* beforeUpdate
+* beforeDelete
+* afterInsert (Not yet implemented)
+* afterUpdate (Not yet implemented)
+* afterDelete (Not yet implemented)
+* onLoad (Not yet implemented)
+
+<h3>MongoDB related classes and  methods</h3>
+* <code>BasicDBObject.toDomain()</code>
+* <code>MyQueryBuilder</code> which extends <code>QueryBuilder</code>
+** where
+** exists: <code>User.mongoFind { where("mobile").exists() }
+** notExists:
+** between: <code>User.mongoFind { where("info.weight").between(100, 150) }</code>
