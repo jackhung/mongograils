@@ -15,21 +15,45 @@ import org.slf4j.LoggerFactory
  */
 class MongoDomainMethods {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(MongoDomainMethods)
-	
-//	DBCollection collection
-	
-	MongoDomainMethods(collection) {
-//		this.collection = collection
+
+	static enhanceClass = { Class domainClass ->
+		def mc = domainClass.metaClass
+		mc.static.mongoFind = mongoFind
+		mc.static.mongoFind = mongoFindWithQueryBuilder
+		mc.static.mongoFind = mongoClosureFindWithQueryBuilder
+		
+		mc.static.mongoFindOne = MongoDomainMethods.mongoFindOne
+		mc.static.mongoFindOne = MongoDomainMethods.mongoFindOneWithQueryBuilder
+		mc.static.mongoFindOne = MongoDomainMethods.mongoClosureFindOneWithQueryBuilder
+		
+		mc.static.mongoFindAll = MongoDomainMethods.mongoFindAll
+		mc.static.mongoQuery = MongoDomainMethods.mongoQuery
+		
+		//		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod	// TODO need to re-think update
+		
+		mc.mongoInsert = MongoDomainMethods.mongoInsert
+		mc.mongoRemove = MongoDomainMethods.mongoRemove
+		mc.mongoUpdate = MongoDomainMethods.mongoUpdate	// Do not use
+		mc.toMongoDoc = MongoDomainMethods.toMongoDoc
+		mc.toMongoRef = MongoDomainMethods.toMongoRef
+		mc.putField = MongoDomainMethods.putField
+		mc.getField = MongoDomainMethods.getField
+		mc.propertyMissing = { String name, val ->
+			putField(name, val)
+		}
+		mc.propertyMissing = { String name ->
+			getField(name)
+		}
 	}
-	
-	def mongoFindOne = { options = null ->
+
+	static mongoFindOne = { options = null ->
 		if (options instanceof Map) {
 			delegate.getCollection().findOne(options as BasicDBObject)
 		} else
 			delegate.getCollection().findOne()
 	}
 	
-	def mongoFind = {options = null ->
+	static mongoFind = {options = null ->
 		if (options instanceof Map) {
 			delegate.getCollection().find(options as BasicDBObject)
 		} else
@@ -37,11 +61,11 @@ class MongoDomainMethods {
 	}
 	
 	// with QueryBuilder
-	def mongoFindOneWithQueryBuilder = { QueryBuilder qb ->
+	static mongoFindOneWithQueryBuilder = { QueryBuilder qb ->
 		delegate.getCollection().findOne(qb.get())
 	}
 	
-	def mongoFindWithQueryBuilder = { QueryBuilder qb ->
+	static mongoFindWithQueryBuilder = { QueryBuilder qb ->
 		delegate.getCollection().find(qb.get())
 	}
 	
@@ -63,7 +87,7 @@ class MongoDomainMethods {
 		c(qb)
 	}
 	
-	def mongoFindAll = { ->
+	static mongoFindAll = { ->
 		"mongoFindAll not yet implemented"
 	}
 	
@@ -75,11 +99,11 @@ class MongoDomainMethods {
 	}
 
 	// TODO remove me
-	def mongoTestMedhod = { arg ->
+	static mongoTestMedhod = { arg ->
 		"$delegate mongoTestMethod $arg"
 	}
 	
-	def mongoInsert = { options = null ->
+	static mongoInsert = { options = null ->
 		// TODO handle options
 		def doc = delegate.toMongoDoc()
 		delegate.getCollection().insert(doc)
@@ -90,7 +114,7 @@ class MongoDomainMethods {
 	/**
 	 * Warn: do not use, not working as expected!!
 	 */
-	def mongoUpdate = { Map options = [:], Closure c = null ->
+	static mongoUpdate = { Map options = [:], Closure c = null ->
 		// TODO handle options as selector
 		log.warn "Lot of problem with mongoUpdate!! Do not use: ${delegate.toMongoDoc()}"
 		delegate.getCollection().update(
@@ -101,18 +125,18 @@ class MongoDomainMethods {
 		)
 	}
 	
-	def mongoRemove = { options = null ->
+	static mongoRemove = { options = null ->
 		// TODO handle options as selector
 		if (delegate._id)
 			delegate.getCollection().remove([_id : delegate._id] as BasicDBObject)
 	}
 	
-	def toMongoRef = {
+	static toMongoRef = {
 		// TODO should we use collection.fullName?
 		new DBRef(delegate.getCollection().getDB(), delegate.getCollection().name, objectId(delegate._id))
 	}
 	
-	def putField = { String name, args ->
+	static putField = { String name, args ->
 		if (delegate.metaClass.hasProperty(delegate, name)) {
 			delegate."$name" = args
 		} else {
@@ -120,7 +144,7 @@ class MongoDomainMethods {
 		}
 	}
 	
-	def getField = { String name ->
+	static getField = { String name ->
 		if (delegate.metaClass.hasProperty(delegate, name)) {
 			delegate."$name"
 		} else {
@@ -128,8 +152,8 @@ class MongoDomainMethods {
 		}
 	}
 	
-	def ignoreProps = ["log", "class", "constraints", "properties", "id", "version", "errors", "collection", "mongoTypeName", "metaClass"]
-	def toMongoDoc = {
+	static ignoreProps = ["log", "class", "constraints", "properties", "id", "version", "errors", "collection", "mongoTypeName", "metaClass"]
+	static toMongoDoc = {
 		log.debug("${delegate}.toMongoDoc()")
 		def props = delegate.metaClass.properties.name - ignoreProps
 		def docMap = [_t: delegate.getMongoTypeName()]
@@ -152,7 +176,7 @@ class MongoDomainMethods {
 		docMap as BasicDBObject
 	}
 	
-	private objectId(id) {
+	static private objectId(id) {
 		id instanceof ObjectId ? id : new ObjectId(id)
 	}
 }

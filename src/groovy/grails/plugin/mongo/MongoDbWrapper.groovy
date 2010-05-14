@@ -61,36 +61,10 @@ class MongoDbWrapper implements InitializingBean {
 		 * MongonDomainMethods should simply be mixin-ed into all DomainClass, but
 		 * there seemed to be some problem in using mixin and GORM :(
 		 */
-		def domainMethods = new MongoDomainMethods(coll)
 		mc.static.getCollection = { coll }		// TODO put coll and typeName in MongoMetaInfo so not to clobber the namespace
 		mc.static.getMongoTypeName = { typeName }
 		
-		mc.static.mongoFind = domainMethods.mongoFind
-		mc.static.mongoFind = domainMethods.mongoFindWithQueryBuilder
-		mc.static.mongoFind = MongoDomainMethods.mongoClosureFindWithQueryBuilder
-		
-		mc.static.mongoFindOne = domainMethods.mongoFindOne
-		mc.static.mongoFindOne = domainMethods.mongoFindOneWithQueryBuilder
-		mc.static.mongoFindOne = MongoDomainMethods.mongoClosureFindOneWithQueryBuilder
-		
-		mc.static.mongoFindAll = domainMethods.mongoFindAll
-		mc.static.mongoQuery = MongoDomainMethods.mongoQuery
-		
-//		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod	// TODO need to re-think update
-		
-		mc.mongoInsert = domainMethods.mongoInsert
-		mc.mongoRemove = domainMethods.mongoRemove
-		mc.mongoUpdate = domainMethods.mongoUpdate	// Do not use
-		mc.toMongoDoc = domainMethods.toMongoDoc
-		mc.toMongoRef = domainMethods.toMongoRef
-		mc.putField = domainMethods.putField
-		mc.getField = domainMethods.getField
-		mc.propertyMissing = { String name, val ->
-			putField(name, val)
-		}
-		mc.propertyMissing = { String name ->
-			getField(name)
-		}
+		MongoDomainMethods.enhanceClass(clazz)
 		
 		/*
 		 * mongo operations
