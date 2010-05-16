@@ -15,6 +15,7 @@ class MongoUtils {
 		decorateBasicDBObject wrapper
 		decorateBasicDBList()
 		decorateDBRef()
+		decorateDBCursor()
 		decorateCollection()
 	}
 	
@@ -68,6 +69,13 @@ class MongoUtils {
 			delegate.fetch().toDomain(fetchRef)
 		}
 	}
+	// DBCursor.toDomains()
+	static decorateDBCursor() {
+		DBCursor.metaClass.toDomains = { ->
+			delegate.inject([]) { lst, doc -> lst << doc.toDomain() }
+		}
+	}
+	
 	static decorateCollection() {
 		Collection.metaClass.toMongoDoc = {
 			log.debug("${delegate}.toMongoDoc()")
