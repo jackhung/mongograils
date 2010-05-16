@@ -31,6 +31,11 @@ class MongoModifiersMethods {
 		log.debug "${builder.get()}"
 		if (delegate.respondsTo("beforePerform")) delegate.beforePerform(builder)
 		delegate.getCollection().update(selector, builder.get())
+		/*
+		 * afterPerform might not make a lot of sense, since the modification(s) is not
+		 * immediately reflected in the domain object!!
+		 */
+		if (delegate.respondsTo("afterPerform")) delegate.afterPerform(builder)
 	}
 }
 

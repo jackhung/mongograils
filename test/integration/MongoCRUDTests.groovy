@@ -75,10 +75,12 @@ class MongoCRUDTests extends MongoTestCase {
 		u.mongoInsert()		// TODO this cause an exception, the ArrayList does not response to toMongoDoc
 							// see hack in MongoDomainMethods. Need fixing!!
 		// TODO make this work u = User.mongoFindOne(_id: u._id)
-		u = User.mongoFindOne(username: "acctUser1")
+//		u = User.mongoFindOne(username: "acctUser1")
+		u = u.mongoRefresh()
 		assertEquals "001234",u.accounts[0].accountNumber
 		
-		assertEquals 1, Account.collection.count
+//		assertEquals 1, Account.collection.count
+		assertEquals 1, Account.mongoCount()
 	}
 	
 	void testBeforeXXX() {

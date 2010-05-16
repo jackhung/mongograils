@@ -20,6 +20,7 @@ class MongoDomainMethods {
 
 	static enhanceClass = { Class domainClass ->
 		def mc = domainClass.metaClass
+		mc.static.mongoCount = mongoCount
 		mc.static.mongoFind = mongoFind
 		mc.static.mongoFind = mongoFindWithQueryBuilder
 		mc.static.mongoFind = mongoClosureFindWithQueryBuilder
@@ -33,6 +34,7 @@ class MongoDomainMethods {
 		
 		//		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod	// TODO need to re-think update
 		
+		mc.mongoRefresh = MongoDomainMethods.mongoRefresh
 		mc.mongoInsert = MongoDomainMethods.mongoInsert
 		mc.mongoRemove = MongoDomainMethods.mongoRemove
 		mc.mongoUpdate = MongoDomainMethods.mongoUpdate	// Do not use
@@ -63,11 +65,13 @@ class MongoDomainMethods {
 	}
 	
 	// with QueryBuilder
-	static mongoFindOneWithQueryBuilder = { QueryBuilder qb ->
+	static mongoFindOneWithQueryBuilder = { QueryBuilder qb, fields = emptyDBObject ->
+		if (fields instanceof Map) fields = fields as BasicDBObject
 		delegate.getCollection().findOne(qb.get())
 	}
 	
-	static mongoFindWithQueryBuilder = { QueryBuilder qb ->
+	static mongoFindWithQueryBuilder = { QueryBuilder qb, fields = emptyDBObject ->
+		if (fields instanceof Map) fields = fields as BasicDBObject
 		delegate.getCollection().find(qb.get())
 	}
 	
@@ -90,6 +94,14 @@ class MongoDomainMethods {
 		c.delegate = qb
 		c(qb)
 	}
+
+	/**
+	 * return a new instance.
+	 * TODO it would be better to update the delegate instead
+	 */
+	static mongoRefresh = { ->
+		delegate.getCollection().findOne(["_id": delegate._id] as BasicDBObject)
+	}
 	
 	static mongoFindAll = { ->
 		"mongoFindAll not yet implemented"
@@ -103,8 +115,16 @@ class MongoDomainMethods {
 	}
 
 	// TODO remove me
-	static mongoTestMedhod = { arg ->
-		"$delegate mongoTestMethod $arg"
+	static staticTestMedhod(arg) {
+		"staticTestMethod $arg"
+	}
+
+	def testMethod(arg) {
+		"testMethod $arg"
+	}
+	
+	static mongoCount = { ->
+		delegate.getCollection().count
 	}
 	
 	static mongoInsert = { options = null ->
@@ -178,7 +198,7 @@ class MongoDomainMethods {
 					docMap."$p" = val.toMongoDoc()
 				} else {
 					if (val instanceof Collection) {
-						// TODO Bug does not respond to toMongoDoc but can invoke toMongoDoc !!
+						// TODO Bug, does not respond to toMongoDoc but can invoke toMongoDoc !!
 						log.error("FIXME: hack around $val of ${val.getClass().simpleName} not reponds to toMongoDoc()")
 						docMap."$p" = val.toMongoDoc()
 					} else {
@@ -192,7 +212,7 @@ class MongoDomainMethods {
 	}
 
 	// TODO we need to listen to changeEvent and clean the cache
-	static disallowedCache = [:]
+	static disallowedCache = [:]	// key: className + propertyName
 	static cacheDisallowedField(mc) {
 		def props = mc.properties.name - ignoreProps
 		props.each { p -> 
