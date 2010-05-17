@@ -135,4 +135,29 @@ class MongoQueryTests extends MongoTestCase {
 		assertNotNull "Find-by-string-id should work", user2
 		assertEquals user, user2
 	}
+	
+	void testQueryNestedField() {
+		def user1 = new User(username: "QueryNestedField001")
+		user1.info = [code: "A"]
+		user1.mongoInsert()
+		
+		def user2 = new User(username: "QueryNestedField002")
+		user2.info = [code: "A", value: "VA"]
+		user2.mongoInsert()
+		
+		def res = User.mongoFind { where("info"){ where("code").is("A") }}
+		assertEquals "Should do exact match", 1, res.count()
+		def doc = res.next()
+		assertNotNull "Should found user1", doc
+		assertEquals "A", doc.info.code
+		assertNull doc.info.value
+		
+		res = User.mongoFind { where("info"){ where("code").is("A").and("value").is("VA") }}
+		assertEquals "Should do exact match", 1, res.count()
+		doc = res.next()
+		assertEquals "QueryNestedField002", doc.username
+		
+		// just to be complete, using dotted-path should return both
+		assertEquals 2, User.mongoFind { where("info.code").is("A") }.count()
+	}
 }

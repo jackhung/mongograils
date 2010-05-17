@@ -6,6 +6,9 @@ import com.mongodb.ObjectId
 import com.mongodb.DBRef
 import com.mongodb.DBCollection
 import com.mongodb.QueryBuilder
+
+import groovy.lang.Closure;
+
 import java.lang.reflect.Modifier
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -261,6 +264,13 @@ class MongoDomainMethods {
 class MyQueryBuilder extends QueryBuilder {
 	def where(e) {
 		and(e)
+	}
+	
+	def where(e, Closure c) {
+		def qb = new MyQueryBuilder()
+		c.delegate = qb
+		c.call()
+		and(e).is(qb.get())
 	}
 	
 	def exists() {
