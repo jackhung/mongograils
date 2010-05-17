@@ -37,6 +37,12 @@ class MongoQueryTests extends MongoTestCase {
 		assertEquals 2, rs.count()
 	}
 	
+	void testFindOneWithNestElementQuery() {
+		def q = User.mongoQuery("info.height").greaterThan(6.0)
+		def rs = User.mongoFind(q)
+		assertEquals 1, rs.count()
+	}
+	
 	/*
 	 * How about supporting:
 	 * result = User.mongoFindOne { qb -> qb.and("someField").is(someValue) }
@@ -81,35 +87,52 @@ class MongoQueryTests extends MongoTestCase {
 		
 		def userCount = User.mongoFind().count()
 		def cursor = User.mongoFind().skip(50)
-		assertEquals userCount - 50, cursor.itcount()
+		assertEquals "Should be 50 less", userCount - 50, cursor.itcount()
 		
 		cursor = User.mongoFind().limit(10)
-		assertEquals 10, cursor.itcount()
+		assertEquals "limit 10 requested", 10, cursor.itcount()
 
 		cursor = User.mongoFind{ where("username").regex(~/USER12\n?/) }.limit(5)
 		assertEquals 5, cursor.itcount()
 		
-		cursor = User.mongoFind{where("username").regex(~/USER13\n?/)}.skip(5).sort(["username": 1] as com.mongodb.BasicDBObject)
+		cursor = User.mongoFind{where("username").regex(~/USER13\n?/)}
+					.skip(5).sort(["username": 1] as BasicDBObject)
 		assertEquals 10, cursor.count()
 		def u = cursor.next().toDomain()
-		assertEquals "USER135", u.username
+		assertEquals "1st with skip-5-and-sorted should be USER135", "USER135", u.username
 	}
 	
 	void testFindWithFieldsSelection() {
 		def user = User.mongoFindOne([username: "Pete"], [info: true]).toDomain()
-		assertNotNull user.info
-		assertNull user.username
+		assertNotNull "'info' field requested", user.info
+		assertNull "Only 'info' field requested", user.username
 		
 		user = User.mongoFindOne([username: "Pete"], [info: false]).toDomain()
-		assertNull user.info
-		assertNotNull user.username
+		assertNull "'info' field excluded", user.info
+		assertNotNull "all fields except 'info'", user.username
 		
+		// using query closure
 		user = User.mongoFindOne(info: 1) { where("username").is("Pete") }.toDomain()
-		assertNotNull user.info
-		assertNull user.username
+		assertNotNull "'info' field requested", user.info
+		assertNull "Only 'info' field requested", user.username
 		
 		user = User.mongoFindOne(info: 0) { where("username").is("Pete") }.toDomain()
-		assertNull user.info
-		assertNotNull user.username
+		assertNull "'info' field excluded", user.info
+		assertNotNull "all fields except 'info'", user.username
+	}
+	
+	void testFindWithObjectId() {
+		def user = User.mongoFindOne()
+		def user2 = User.mongoFindOne(user._id)
+		assertNotNull "Find-by-objectId should work", user2
+		assertEquals user, user2
+	}
+	
+	void testFindWithStringObjectId() {
+		def user = User.mongoFindOne()
+		def idStr = user._id.toString()
+		def user2 = User.mongoFindOne(idStr)
+		assertNotNull "Find-by-string-id should work", user2
+		assertEquals user, user2
 	}
 }

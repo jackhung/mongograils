@@ -29,7 +29,7 @@ class MongoDomainMethods {
 		mc.static.mongoFindOne = MongoDomainMethods.mongoFindOneWithQueryBuilder
 		mc.static.mongoFindOne = MongoDomainMethods.mongoClosureFindOneWithQueryBuilder
 		
-		mc.static.mongoFindAll = MongoDomainMethods.mongoFindAll
+//		mc.static.mongoFindAll = MongoDomainMethods.mongoFindAll
 		mc.static.mongoQuery = MongoDomainMethods.mongoQuery
 		
 		//		mc.static.mongoTestMedhod = domainMethods.mongoTestMedhod	// TODO need to re-think update
@@ -52,30 +52,54 @@ class MongoDomainMethods {
 		cacheDisallowedField(mc)
 	}
 
+	/**
+	 * The conds parameter have the following implications:
+	 * <ul>
+	 * <li> default to emptyDBObject if not specified
+	 * <li> if it is a Map, it will be converted to <link>BasicDBObject</link>
+	 * <li> if it is a BasicDBObject, just passes on
+	 * <li> if it is a String or ObjectId, then use it as '_id' value for find-by-id 
+	 * </ul>
+	 * 
+	 * @param conds 
+	 */
 	static mongoFindOne = { conds = emptyDBObject, fields = emptyDBObject ->
-		if (conds instanceof Map) conds = conds as BasicDBObject
+//		if (conds instanceof Map) conds = conds as BasicDBObject
+//		if (conds instanceof String) conds = [_id: new ObjectId(conds)] as BasicDBObject
+//		if (conds instanceof ObjectId) conds = [_id: conds] as BasicDBObject
+		conds = processRequestedCondition(conds)
 		if (fields instanceof Map) fields = fields as BasicDBObject
 		delegate.getCollection().findOne(conds, fields)
 	}
 	
 	static mongoFind = {conds = emptyDBObject, fields = emptyDBObject ->
-		if (conds instanceof Map) conds = conds as BasicDBObject
+//		if (conds instanceof Map) conds = conds as BasicDBObject
+		conds = processRequestedCondition(conds)
 		if (fields instanceof Map) fields = fields as BasicDBObject
 		delegate.getCollection().find(conds, fields)
+	}
+
+	static processRequestedCondition(conds) {
+		if (conds == null) conds = emptyDBObject
+		else if (conds instanceof BasicDBObject) { /* do nothing */}
+		else if (conds instanceof Map) conds = conds as BasicDBObject
+		else if (conds instanceof String) conds = [_id: new ObjectId(conds)] as BasicDBObject
+		else if (conds instanceof ObjectId) conds = [_id: conds] as BasicDBObject
+		conds	
 	}
 	
 	// with QueryBuilder
 	static mongoFindOneWithQueryBuilder = { QueryBuilder qb, fields = emptyDBObject ->
 		if (fields instanceof Map) fields = fields as BasicDBObject
-		delegate.getCollection().findOne(qb.get())
+		delegate.getCollection().findOne(qb.get(), fields)
 	}
 	
 	static mongoFindWithQueryBuilder = { QueryBuilder qb, fields = emptyDBObject ->
 		if (fields instanceof Map) fields = fields as BasicDBObject
-		delegate.getCollection().find(qb.get())
+		delegate.getCollection().find(qb.get(), fields)
 	}
 	
-	// with QueryBuilderClosure  User.mongoFind { that("mother.username").is("Mary") }
+	// with QueryBuilderClosure  User.mongoFind { where("mother.username").is("Mary") }
 	static mongoClosureFindOneWithQueryBuilder = { fields = emptyDBObject, Closure c ->
 		def qb = evaluateQueryBuilderClosure(c, delegate)
 		if (fields instanceof Map) fields = fields as BasicDBObject
@@ -103,9 +127,9 @@ class MongoDomainMethods {
 		delegate.getCollection().findOne(["_id": delegate._id] as BasicDBObject)
 	}
 	
-	static mongoFindAll = { ->
-		"mongoFindAll not yet implemented"
-	}
+//	static mongoFindAll = { ->
+//		"mongoFindAll not yet implemented"
+//	}
 	
 	static mongoQuery = { key, byType = true ->
 		if (byType)
