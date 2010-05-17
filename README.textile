@@ -8,13 +8,32 @@
 * Can link documents with <code>DBRef</code>
 
 <h2>Quickstart</h2>
-# Download the plugin
-# Create a Grails project
-# Install the plugin
-# Create a domain class
-# Create a integration test case
-# Ensured that MongoDB is started
-# Run the test.
+<h3>1. Download the plugin</h3>
+Down load <a href="http://github.com/jackhung/mongograils/downloads">grails-mongograils-0.1.zip</a>
+
+<h3>2. Create a Grails project</h3>
+<code>grails create-app mongograils-sample</code>
+
+<h3>3. Install the plugin</h3>
+<code>grails install-plugin /tmp/mongograils/grails-mongograils-0.1.zip</code>
+
+<h3>4. Create the Book domain, controller and list-view</h3>
+<code> vim grails-app/domain/Book.groovy </code> and copy from <a href="http://gist.github.com/403668">here</a>
+<script src="http://gist.github.com/403668.js?file=Book.groovy"></script>
+<code> vim grails-app/controllers/BookController.groovy </code> and copy from <a href="http://gist.github.com/403674">here</a>
+<script src="http://gist.github.com/403674.js?file=BookController.groovy"></script>
+<code> mkdir grails-app/views/book </code>
+<code> vim grails-app/views/list.gsp </code> and copy from <a href="http://gist.github.com/403675">here</a>
+<script src="http://gist.github.com/403675.js?file=view.gsp"></script>
+
+<h3>5. Create some sample data in BootStrap.groovy</h3>
+<code>vim grails-app/conf/BootStrap.groovy</code>
+<script src="http://gist.github.com/403671.js?file=BootStrap.groovy"></script>
+
+<h3> 6. Run and test </h3>
+Make sure mongodb is up and running.
+Then start the application <code>grails run-app</code>
+Now point your browser to http://localhost:8080/mongograils-sample
 
 <h2>Domain Class</h2>
 
