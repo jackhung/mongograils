@@ -292,4 +292,14 @@ class MyQueryBuilder extends QueryBuilder {
 		def qbElemMatch = new MyQueryBuilder().put('$elemMatch').is(qbInner.get())		
 		and(e).is(qbElemMatch.get())
 	}
+	
+	/*
+	 * Not really working
+	 * SHOULD allows to do things like
+	 *   q.usernameEquals "Jack" or findOne { account.balanceLessThan 1000.0 }
+	 */
+	def methodMissing(String name, args) {
+		and(name)
+		this
+	}
 }

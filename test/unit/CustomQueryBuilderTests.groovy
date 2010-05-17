@@ -15,6 +15,22 @@ import grails.plugin.mongo.*;
  */
 class CustomQueryBuilderTests extends GroovyTestCase {		
 	
+	void testBetweenQuery() {
+		def expected = '{ "value" : { "$gt" : 1 , "$lt" : 100}}'
+		def q = new MyQueryBuilder()
+		q.where("value").between(1, 100)
+		
+		assertEquals expected, q.get().toString()
+	}
+	
+	void testNestedQuery() {
+		def expected = '{ "info" : { "code" : "A"}}'
+		def q = new MyQueryBuilder()
+		q.where("info"){ where("code").is("A")}	// this is not too intuitive
+		
+		assertEquals expected, q.get().toString()
+	}
+	
 	void testElementMatchQuery() {
 		def expected = '{ "info" : { "$elemMatch" : { "code" : "A" , "value" : "VA"}}}'
 		def q = new MyQueryBuilder()
