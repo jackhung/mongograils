@@ -27,13 +27,14 @@ Down load <a href="http://github.com/jackhung/mongograils/downloads">grails-mong
 <script src="http://gist.github.com/403675.js?file=view.gsp"></script>
 
 <h3>5. Create some sample data in BootStrap.groovy</h3>
-<code>vim grails-app/conf/BootStrap.groovy</code>
+<code>vim grails-app/conf/BootStrap.groovy</code> and replace content from <a href="http://gist.github.com/403671">here</a>
 <script src="http://gist.github.com/403671.js?file=BootStrap.groovy"></script>
 
 <h3> 6. Run and test </h3>
-Make sure mongodb is up and running.
-Then start the application <code>grails run-app</code>
-Now point your browser to http://localhost:8080/mongograils-sample
+* Make sure mongodb is up and running.
+* Then start the application <code>grails run-app</code>
+* Now point your browser to <code>http://localhost:8080/mongograils-sample</code>
+* You can also get the Book-list as JSON: <code>http://localhost:8080/mongograils-sample/book/list.json</code> or as XML : <code>http://localhost:8080/mongograils-sample/book/list.xml</code>
 
 <h2>Domain Class</h2>
 
