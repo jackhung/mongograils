@@ -7,6 +7,15 @@
 * Easy Atomic operations 
 * Can link documents with <code>DBRef</code>
 
+<h2>Quickstart</h2>
+# Download the plugin
+# Create a Grails project
+# Install the plugin
+# Create a domain class
+# Create a integration test case
+# Ensured that MongoDB is started
+# Run the test.
+
 <h2>Domain Class</h2>
 
 <h3>Annotations</h3>
@@ -61,10 +70,12 @@ CRUD Events:
 * beforeInsert
 * beforeUpdate
 * beforeDelete
+* beforePerform
 * afterInsert (Not yet tested)
 * afterUpdate (Not yet tested)
 * afterDelete (Not yet tested)
-* onLoad (Not yet implemented. There is no simple way to implement this. Need to wrapped the <code>DBCursor</code> return to the caller to intercept call to <code>next()</code>)
+* afterPerform, might not make a lot of sense, since the modification(s) is not immediately reflected in the domain object!!
+* onLoad (Not yet implemented. There is no simple way to implement this. Need to wrapped the <code>DBCursor</code> return to the caller to intercept call to <code>next()</code>). Again it might not make a lot of sense, since <code>DBCursor.next()</code> returns a BasicDBObject, not the domain object. So it is not very useful for things like computing caculated fields.
 
 <h3>MongoDB related classes and  methods</h3>
 * <code>BasicDBObject.toDomain()</code>
