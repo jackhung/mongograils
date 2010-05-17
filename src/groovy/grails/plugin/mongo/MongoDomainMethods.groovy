@@ -285,4 +285,11 @@ class MyQueryBuilder extends QueryBuilder {
 		greaterThan(a).lessThan(b)
 	}
 	
+	def elemMatch(e, Closure c) {
+		def qbInner = new MyQueryBuilder()
+		c.delegate = qbInner
+		c.call()
+		def qbElemMatch = new MyQueryBuilder().put('$elemMatch').is(qbInner.get())		
+		and(e).is(qbElemMatch.get())
+	}
 }
