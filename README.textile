@@ -33,7 +33,7 @@ Down load <a href="http://github.com/jackhung/mongograils/downloads">grails-mong
 <h3> 6. Run and test </h3>
 * Make sure mongodb is up and running.
 * Then start the application <code>grails run-app</code>
-* Now point your browser to <code>http://localhost:8080/mongograils-sample</code>
+* Now point your browser to <code>http://localhost:8080/mongograils-sample</code> (<b>NOTE: Only the list action/view is currently usable</b>)
 * You can also get the Book-list as JSON: <code>http://localhost:8080/mongograils-sample/book/list.json</code> or as XML : <code>http://localhost:8080/mongograils-sample/book/list.xml</code>
 
 <h2>Domain Class</h2>
@@ -56,6 +56,8 @@ This is used by the <code>BasicDBObject.toDomain()</code> to determine the Domai
 The value of <code>@MongoCollection</code> specifies the MongoDB Collection to use for storing instances of the entity.
 
 <h3>Domain MongoDB methods</h3>
+
+Please find examples of using the mongo plugin API in the project's <a href="http://github.com/jackhung/mongograils/tree/master/test/">unit/integration tests</a>.
 
 Static methods:
 * mongoFind
