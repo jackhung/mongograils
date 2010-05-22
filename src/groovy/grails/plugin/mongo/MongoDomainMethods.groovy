@@ -182,11 +182,11 @@ class MongoDomainMethods {
 	
 	static mongoRemove = { options = null ->
 		// TODO handle options as selector
-		if (delegate.respondsTo("beforeRemove")) delegate.beforeDelete()
+		if (delegate.respondsTo("beforeRemove")) delegate.beforeRemove()
 		if (delegate.respondsTo("beforeDelete")) delegate.beforeDelete()
 		if (delegate._id)
 			delegate.getCollection().remove([_id : delegate._id] as BasicDBObject)
-		if (delegate.respondsTo("afterRemove")) delegate.afterDelete()
+		if (delegate.respondsTo("afterRemove")) delegate.afterRemove()
 		if (delegate.respondsTo("afterDelete")) delegate.afterDelete()
 	}
 	
